@@ -1,0 +1,18 @@
+1. in this routine, you can set the brightness level (0-7)
+
+2. characters can be displayed 0-9,a,b,c,d,e,f,-
+
+3. can be set in a few decimal points are displayed on, function dotShow (): (set to 1-4)
+
+4. key features
+
+left key:the first digital tube +1
+
+up key:the second digital tube +1
+
+right key:the third digital tube +1
+
+donw key:the fourth digital tube +1
+
+select key:the fifth digital tube +1
+

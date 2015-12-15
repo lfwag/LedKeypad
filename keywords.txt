@@ -1,0 +1,37 @@
+#######################################
+# Syntax Coloring Map For Rgb Library
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+ledkeypad	KEYWORD2
+begin	KEYWORD2
+keyRead	KEYWORD2
+getKey	KEYWORD2
+tm1650Begin	KEYWORD2
+tm1650Stop	KEYWORD2
+tm1650Write	KEYWORD2
+tm1650Send	KEYWORD2
+display	KEYWORD2
+keyControl	KEYWORD2
+Ledtime	KEYWORD2
+setBrightness	KEYWORD2
+dotShow	KEYWORD2	
+dotVanish	KEYWORD2
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+KEY_DOWN	LITERAL1
+KEY_LEFT	LITERAL1
+KEY_UP	LITERAL1
+KEY_RIGHT	LITERAL1
+KEY_SELECT	LITERAL1
+KEY_NULL	LITERAL1
