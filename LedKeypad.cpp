@@ -1,12 +1,22 @@
+/*!
+* @file LedKeypad.cpp
+* @brief LedKeypad.cpp LedKeypad.cpp Prepared for the LedKeypad library function for displaying numbers and letters
+*
+*  LedKeypad.cpp Prepared for the LedKeypad library function for displaying numbers and letters
+* 
+* @author linfeng(490289303@qq.com)
+* @version  V1.0
+* @date  2015-12-11
+*/
 #include "LedKeypad.h"
 
 
-char LedKeypad::onlineTime[2]={0,0};  ///< time:onlineTime[0],minute£»time_online[1]hour
+char LedKeypad::onlineTime[2]={0,0};  ///< time:onlineTime[0],minuteÂ£Â»time_online[1]hour
 unsigned char LedKeypad::dotFlag = 0; ///<
 unsigned char LedKeypad::brightness = 0;  ///<The current brightness level
 unsigned long LedKeypad::lastTime=0,LedKeypad::disTime=0,LedKeypad::ledTime=0;  ///<Timer
-unsigned char LedKeypad::brightness7[8]={0x19,0x29,0x39,0x49,0x59,0x69,0x79,0x09};  ///<1 to 8 - level brightness£¨7-SEG LED£©
-unsigned char LedKeypad::brightness8[8]={0x11,0x21,0x31,0x41,0x51,0x61,0x71,0x01};  ///<1 to 8 - level brightness£¨8-SEG LED£©
+unsigned char LedKeypad::brightness7[8]={0x19,0x29,0x39,0x49,0x59,0x69,0x79,0x09};  ///<1 to 8 - level brightnessÂ£Â¨7-SEG LEDÂ£Â©
+unsigned char LedKeypad::brightness8[8]={0x11,0x21,0x31,0x41,0x51,0x61,0x71,0x01};  ///<1 to 8 - level brightnessÂ£Â¨8-SEG LEDÂ£Â©
 unsigned char LedKeypad::ledVal[17]=
 {
 	0x3F, ///< 0
