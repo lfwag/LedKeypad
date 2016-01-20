@@ -1,3 +1,12 @@
+/*!
+* @file LedKeypad.ino
+* @brief test all LedKeypad API
+*  Press the key corresponding to the digital self plus one
+* 
+* @author linfeng(490289303@qq.com)
+* @version  V1.0
+* @date  2015-12-11
+*/
 #include <LedKeypad.h>
 
 char brightness =0;
