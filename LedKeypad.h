@@ -7,18 +7,28 @@
 * @author linfeng(490289303@qq.com)
 * @version  V1.0
 * @date  2015-12-11
+*
+* alex at AgroMe.com 2021-09-23:
+* - extended charset to full latin ascii alphabet
+* - some useful special chars
+* - changed RAM char table to PROGMEM
+* - added a clear method to clear and shut off display
+* - changed unsigned char to uint8_t for portability, clarity and avoid confusion with char
+* - more re-use of the display(uint8_t addr,char data) method to simplify code
+* - tabs to spaces
+* - added README
 */
 #ifndef __LedKeypad__H
 #define __LedKeypad__H
 
 #include "Arduino.h"
 
-#define KEY_DOWN  1
-#define KEY_LEFT  2
-#define KEY_UP   3
-#define KEY_RIGHT 4
-#define KEY_SELECT 5
-#define KEY_NULL    0	
+#define KEY_DOWN    1
+#define KEY_LEFT    2
+#define KEY_UP      3
+#define KEY_RIGHT   4
+#define KEY_SELECT  5
+#define KEY_NULL    0
 
 
 class LedKeypad
@@ -26,38 +36,37 @@ class LedKeypad
 public:
 	LedKeypad(){};
 	void begin(void);
-	char keyRead(void);	
+	uint8_t keyRead(void);
 	char getKey(void);
 	void clrKey(void);
 	char letterTransform(char letter);
 	void tm1650Begin(void);
 	void tm1650Stop(void);
-	void tm1650Write(unsigned char oneByte);
-	void tm1650Send(unsigned char addr,unsigned char data);
-	void setBrightness(unsigned char brightness);
+	void tm1650Write(uint8_t oneByte);
+	void tm1650Send(uint8_t addr,uint8_t data);
+	void setBrightness(uint8_t brightness);
 	void display(int data);
-	void display(int addr,char data);
+	void display(uint8_t addr,char data);
 	void display(const char* buf_);
-	void dotShow(char temp);
-	void dotVanish(char temp);
-	
+	void dotShow(uint8_t addr);
+	void dotVanish(uint8_t addr);
+    void clear();
+    unsigned char getLedVal(unsigned char ch);
+
 private:
 	#define SCL_pin 19
 	#define SDA_pin 18	
 
-	unsigned char keyOk;
-	unsigned char keyCount;	
+	uint8_t keyOk;
+	uint8_t keyCount;
 	char ledByteVal_[4]; ///<The displayed value
-	static unsigned char dotFlag;
+	static uint8_t dotFlag;
 	static char onlineTime[2];  ///< time:onlineTime[0],minute；time_online[1]hour
-	static unsigned char brightness;  ///<The current brightness level
-	static unsigned long lastTime,disTime,ledTime;  ///<Timer
-	static unsigned char brightness7[8];  ///<1 to 8 - level brightness（7-SEG LED）
-	static unsigned char brightness8[8];  ///<1 to 8 - level brightness（8-SEG LED）
-	static unsigned char ledVal[17];  ///<cathode
-	static char ledByte[4]; ///<Digital tube selection
-	
-
+	static uint8_t brightness;  ///<The current brightness level
+	static uint16_t lastTime,disTime,ledTime;  ///<Timer
+	static uint8_t brightness7[8];  ///<1 to 8 - level brightness（7-SEG LED）
+	static uint8_t brightness8[8];  ///<1 to 8 - level brightness（8-SEG LED）
+	static uint8_t ledByte[4]; ///<Digital tube selection
 
 };
 extern LedKeypad ledkeypad;
