@@ -1,45 +1,83 @@
-/*!
-* @file LedKeypad.cpp
-* @brief LedKeypad.cpp LedKeypad.cpp Prepared for the LedKeypad library function for displaying numbers and letters
-*
-*  LedKeypad.cpp Prepared for the LedKeypad library function for displaying numbers and letters
-* 
-* @author linfeng(490289303@qq.com)
-* @version  V1.0
-* @date  2015-12-11
-*/
 #include "LedKeypad.h"
+#include <avr/pgmspace.h>
 
+char LedKeypad::onlineTime[2]={0,0};  ///< time:onlineTime[0],minute time_online[1]hour
+uint8_t  LedKeypad::dotFlag = 0; ///<
+uint8_t  LedKeypad::brightness = 0;  ///<The current brightness level
+uint16_t LedKeypad::lastTime=0,LedKeypad::disTime=0,LedKeypad::ledTime=0;  ///<Timer
+uint8_t  LedKeypad::brightness7[8]={0x19,0x29,0x39,0x49,0x59,0x69,0x79,0x09};  ///<1 to 8 - level brightness 7-SEG LED
+uint8_t  LedKeypad::brightness8[8]={0x11,0x21,0x31,0x41,0x51,0x61,0x71,0x01};  ///<1 to 8 - level brightness 8-SEG LED
 
-char LedKeypad::onlineTime[2]={0,0};  ///< time:onlineTime[0],minute£»time_online[1]hour
-unsigned char LedKeypad::dotFlag = 0; ///<
-unsigned char LedKeypad::brightness = 0;  ///<The current brightness level
-unsigned long LedKeypad::lastTime=0,LedKeypad::disTime=0,LedKeypad::ledTime=0;  ///<Timer
-unsigned char LedKeypad::brightness7[8]={0x19,0x29,0x39,0x49,0x59,0x69,0x79,0x09};  ///<1 to 8 - level brightness£¨7-SEG LED£©
-unsigned char LedKeypad::brightness8[8]={0x11,0x21,0x31,0x41,0x51,0x61,0x71,0x01};  ///<1 to 8 - level brightness£¨8-SEG LED£©
-unsigned char LedKeypad::ledVal[17]=
+/*
+          a
+         ---
+       f| g |b
+         ---
+       e|   |c
+         --- . x
+          d
+
+Note: The TM1650 chip uses gfedcba encoding, x is the dot (MSb)
+
+ */
+                                 // xgfedcba     Char  Displays  gfedcba-hex
+const uint8_t C00 PROGMEM = 0b00111111; //   0     0        0x3F
+const uint8_t C01 PROGMEM = 0b00000110; //   1     1        0x06
+const uint8_t C02 PROGMEM = 0b01011011; //   2     2        0x5B
+const uint8_t C03 PROGMEM = 0b01001111; //   3     3        0x4F
+const uint8_t C04 PROGMEM = 0b01100110; //   4     4        0x66
+const uint8_t C05 PROGMEM = 0b01101101; //   5     5        0x6D
+const uint8_t C06 PROGMEM = 0b01111101; //   6     6        0x7D
+const uint8_t C07 PROGMEM = 0b00000111; //   7     7        0x04
+const uint8_t C08 PROGMEM = 0b01111111; //   8     8        0x7F
+const uint8_t C09 PROGMEM = 0b01101111; //   9     9        0x6F
+const uint8_t C10 PROGMEM = 0b01110111; //   A     A        0x77
+const uint8_t C11 PROGMEM = 0b01111100; //   B     b        0x7C
+const uint8_t C12 PROGMEM = 0b00111001; //   C     C        0x39
+const uint8_t C13 PROGMEM = 0b01011110; //   D     d        0x5E
+const uint8_t C14 PROGMEM = 0b01111001; //   E     E        0x79
+const uint8_t C15 PROGMEM = 0b01110001; //   F     F        0x71
+const uint8_t C16 PROGMEM = 0b00111101; //   G     G        0x3D
+const uint8_t C17 PROGMEM = 0b01110110; //   H     H        0x76
+const uint8_t C18 PROGMEM = 0b00110000; //   I     I        0x30
+const uint8_t C19 PROGMEM = 0b00001110; //   J     J        0x0E
+const uint8_t C20 PROGMEM = 0b00000000; //   K     K        0x00 blank
+const uint8_t C21 PROGMEM = 0b00111000; //   L     L        0x38
+const uint8_t C22 PROGMEM = 0b00000000; //   M     M        0x00 blank
+const uint8_t C23 PROGMEM = 0b01010100; //   N     n        0x54
+const uint8_t C24 PROGMEM = 0b01011100; //   O     o        0x5C
+const uint8_t C25 PROGMEM = 0b01110001; //   P     P        0x71
+const uint8_t C26 PROGMEM = 0b01100111; //   Q     q        0x67
+const uint8_t C27 PROGMEM = 0b01010000; //   R     r        0x50
+const uint8_t C28 PROGMEM = 0b01101101; //   S     S        0x6D (same as 5)
+const uint8_t C29 PROGMEM = 0b01111000; //   T     t        0x78
+const uint8_t C30 PROGMEM = 0b00111110; //   U     U        0x3E
+const uint8_t C31 PROGMEM = 0b00000000; //   V     V        0x00 blank
+const uint8_t C32 PROGMEM = 0b00000000; //   W     W        0x00 blank
+const uint8_t C33 PROGMEM = 0b00000000; //   X     X        0x00 blank
+const uint8_t C34 PROGMEM = 0b01101110; //   Y     Y        0x6E
+const uint8_t C35 PROGMEM = 0b00000000; //   Z     Z        0x00 blank
+const uint8_t C36 PROGMEM = 0b01100011; //   *     Degree   0x63
+const uint8_t C37 PROGMEM = 0b01000000; //   -     -        0x40
+const uint8_t C38 PROGMEM = 0b00001000; //   _     _        0x08
+const uint8_t C39 PROGMEM = 0b00100000; //   '     '        0x20
+const uint8_t C40 PROGMEM = 0b00100010; //   "     "        0x22
+
+const uint8_t ledVal[41] PROGMEM =
 {
-	0x3F, ///< 0
-	0x06, ///< 1
-	0x5B, ///< 2
-	0x4F, ///< 3
-	0x66, ///< 4
-	0x6D, ///< 5
-	0x7D, ///< 6
-	0x07, ///< 7
-	0x7F, ///< 8
-	0x6F, ///< 9
-	0x77, ///< A
-	0x7C, ///< b
-	0x39, ///< c
-	0x5E, ///< d
-	0x79, ///< E
-	0x71, ///< F
-	0x40  ///< -
+    C00,C01,C02,C03,C04,C05,
+    C06,C07,C08,C09,C10,C11,
+    C12,C13,C14,C15,C16,C17,
+    C18,C19,C20,C21,C22,C23,
+    C24,C25,C26,C27,C28,C29,
+    C30,C31,C32,C33,C34,C35,
+    C36,C37,C38,C39,C40
 };  ///<cathode
-char LedKeypad::ledByte[4]={0X68,0X6A,0X6C,0X6E}; ///<Digital tube selection
+uint8_t LedKeypad::ledByte[4]={0x68,0x6A,0x6C,0x6E}; ///<Digital tube selection
 
-
+uint8_t LedKeypad::getLedVal(uint8_t index){
+    return pgm_read_byte_near (&ledVal[index]);
+}
 
 /*!
 * @brief IO configuration
@@ -51,8 +89,8 @@ char LedKeypad::ledByte[4]={0X68,0X6A,0X6C,0X6E}; ///<Digital tube selection
 
 void LedKeypad::begin(void)
 {
-	pinMode(SDA_pin,OUTPUT);
-	pinMode(SCL_pin,OUTPUT);
+    pinMode(SDA_pin,OUTPUT);
+    pinMode(SCL_pin,OUTPUT);
 }
 
 /*!
@@ -64,7 +102,7 @@ void LedKeypad::begin(void)
 */ 
 void LedKeypad::setBrightness(unsigned char brightness)
 {
-	tm1650Send(0x48,brightness8[brightness]);
+    tm1650Send(0x48,brightness8[brightness]);
 }
 /*!
 * @brief Show decimal point
@@ -73,13 +111,12 @@ void LedKeypad::setBrightness(unsigned char brightness)
 *
 * @return void
 */ 
-void LedKeypad::dotShow(char temp)
+void LedKeypad::dotShow(uint8_t addr)
 {
-	
-	unsigned char i = 1;
-	i <<= temp;
-	dotFlag |= i;
-	tm1650Send(ledByte[temp],ledVal[ledByteVal_[temp]]|0x80);
+    uint8_t i = 1;
+    i <<= addr;
+    dotFlag |= i;
+    display(addr,ledByteVal_[addr]);
 }
 /*!
 * @brief Close the decimal point
@@ -88,12 +125,12 @@ void LedKeypad::dotShow(char temp)
 *
 * @return void
 */ 
-void LedKeypad::dotVanish(char temp)
+void LedKeypad::dotVanish(uint8_t addr)
 {
-	unsigned char i = 1;
-	i <<= temp;
-	dotFlag &= ~i;
-	tm1650Send(ledByte[temp],ledVal[ledByteVal_[temp]]);
+    uint8_t i = 1;
+    i <<= addr;
+    dotFlag &= ~i;
+    display(addr,ledByteVal_[addr]);
 }
 /*!
 * @brief Enable TM1650
@@ -104,12 +141,12 @@ void LedKeypad::dotVanish(char temp)
 */ 
 void LedKeypad::tm1650Begin(void)
 {
-	digitalWrite(SCL_pin,HIGH);
-	digitalWrite(SDA_pin,HIGH);
-	delayMicroseconds(2);
-	digitalWrite(SDA_pin,LOW);
-	delayMicroseconds(2);
-	digitalWrite(SCL_pin,LOW);
+    digitalWrite(SCL_pin,HIGH);
+    digitalWrite(SDA_pin,HIGH);
+    delayMicroseconds(2);
+    digitalWrite(SDA_pin,LOW);
+    delayMicroseconds(2);
+    digitalWrite(SCL_pin,LOW);
 }
 /*!
 * @brief Disable TM1650
@@ -120,7 +157,7 @@ void LedKeypad::tm1650Begin(void)
 */ 
 void LedKeypad::tm1650Stop(void)
 {
-	digitalWrite(SCL_pin,HIGH);
+    digitalWrite(SCL_pin,HIGH);
     digitalWrite(SDA_pin,LOW);
     delayMicroseconds(2);
     digitalWrite(SDA_pin,HIGH);
@@ -133,7 +170,7 @@ void LedKeypad::tm1650Stop(void)
 *
 * @return void
 */
-void LedKeypad::tm1650Write(unsigned char oneByte)
+void LedKeypad::tm1650Write(uint8_t oneByte)
 {
     for(int i=0;i<8;i++)
     {
@@ -164,9 +201,9 @@ void LedKeypad::tm1650Write(unsigned char oneByte)
 *
 * @return void
 */
-void LedKeypad::tm1650Send(unsigned char addr,unsigned char data)
+void LedKeypad::tm1650Send(uint8_t addr,uint8_t data)
 {
-	tm1650Begin();
+    tm1650Begin();
     tm1650Write(addr);
     tm1650Write(data);
     tm1650Stop();	
@@ -176,11 +213,11 @@ void LedKeypad::tm1650Send(unsigned char addr,unsigned char data)
 *
 * @brief  Read button analog voltage values
 *
-* @return char
+* @return byte
 */
-char LedKeypad::keyRead(void)
+uint8_t LedKeypad::keyRead(void)
 {
-	unsigned int keyVal;
+    unsigned int keyVal;
     keyVal=analogRead(A0);
     if(keyVal<150)return(KEY_DOWN);//0V-down
     else if(keyVal<350)return(KEY_LEFT);//1V-LEFT
@@ -202,15 +239,15 @@ char LedKeypad::getKey(void)
   unsigned long nowTime=millis();  
   keyOk = 0;
   if(nowTime-lastTime>5){
-	lastTime=nowTime;
-	keyNumber=keyRead();
-	if(keyNumber){
-		keyCount++;
-		if(keyCount==10)keyOk=keyNumber;
-		if(keyCount>10)keyCount=11;
-	}else{
-		keyCount=0;
-	}
+    lastTime=nowTime;
+    keyNumber=keyRead();
+    if(keyNumber){
+        keyCount++;
+        if(keyCount==10)keyOk=keyNumber;
+        if(keyCount>10)keyCount=11;
+    }else{
+        keyCount=0;
+    }
   }
   return(keyOk);
 }
@@ -224,18 +261,29 @@ char LedKeypad::getKey(void)
 */
 char LedKeypad::letterTransform(char letter)
 {
-	
-	if(letter < 10){
-		return letter;
-	}else if(letter <= 45){
-		return 16;
-	}else if(letter<58){
-		return(letter-48);
-	}else if(letter<91){
-		return(letter-55);
-	}else if(letter < 123){
-		return(letter-87);
-	}
+
+    if(letter == 32){
+        return 35; //Z no char
+    } else if(letter == 42){
+        return 36;
+    }else if(letter == 45){
+        return 37;
+    }else if(letter == 95){
+        return 38;
+    }else if(letter == 39){
+        return 39;
+    }else if(letter == 34){
+        return 40;
+    }else if(letter < 10){
+        return letter;
+    }else if(letter<58){
+        return(letter-48);
+    }else if(letter<91){
+        return(letter-55);
+    }else if(letter < 123){
+        return(letter-87);
+    }
+
 }
 /*!
 * @brief Display data
@@ -246,16 +294,16 @@ char LedKeypad::letterTransform(char letter)
 */
 void LedKeypad::display(int data)
 {
-	char number[4]; 
-	ledByteVal_[0] = data/1000;
-	data %= 1000;
-	ledByteVal_[1] = data/100;
-	data %= 100;
-	ledByteVal_[2]=data/10;
-	ledByteVal_[3]=data%10;
-	for(int i=0;i<4;i++){		
-		display(i,ledByteVal_[i]);
-	}
+    char number[4];
+    ledByteVal_[0] = data/1000;
+    data %= 1000;
+    ledByteVal_[1] = data/100;
+    data %= 100;
+    ledByteVal_[2]=data/10;
+    ledByteVal_[3]=data%10;
+    for(int i=0;i<4;i++){
+        display(i,ledByteVal_[i]);
+    }
 }
 /*!
 * @brief Display character
@@ -264,19 +312,18 @@ void LedKeypad::display(int data)
 *
 * @return void
 */
-void LedKeypad::display(int addr,char data)
+void LedKeypad::display(uint8_t addr,char data)
 {
-	unsigned char i = 1;
-	i <<= addr;
-	data = letterTransform(data);
-	Serial.println(dotFlag);
-	ledByteVal_[addr]=data;
-	if(i&dotFlag){
-		tm1650Send(ledByte[addr],ledVal[data]+0x80);
-	}else{
-		tm1650Send(ledByte[addr],ledVal[data]);
-	}	
-	
+    unsigned char i = 1;
+    i <<= addr;
+    data = letterTransform(data);
+    ledByteVal_[addr]=data;
+    if(i&dotFlag){
+        tm1650Send(ledByte[addr],getLedVal(data)|0x80);
+    }else{
+        tm1650Send(ledByte[addr],getLedVal(data));
+    }
+
 }
 /*!
 * @brief Display string
@@ -287,13 +334,19 @@ void LedKeypad::display(int addr,char data)
 */
 void LedKeypad::display(const char* buf_)
 {
-	for(int i=0;i<4;i++){
-		ledByteVal_[i] = *buf_++;
-		display(i,ledByteVal_[i]);
-		ledByteVal_[i] = letterTransform(ledByteVal_[i]);
-		tm1650Send(ledByte[i],ledVal[ledByteVal_[i]]);		
-	}
+    for(int i=0;i<4;i++){
+        ledByteVal_[i] = *buf_++;
+        display(i,ledByteVal_[i]);
+    }
 }
+
+void LedKeypad::clear()
+{
+    for(int i=0;i<4;i++){
+        tm1650Send(ledByte[i],0x00);
+    }
+}
+
 
 LedKeypad ledkeypad;
 
